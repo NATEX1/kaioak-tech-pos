@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="kt-blue" x1="46" y1="44" x2="210" y2="212" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9AE6FF"/>
+      <stop offset="0.38" stop-color="#2E7BFF"/>
+      <stop offset="0.72" stop-color="#1246C7"/>
+      <stop offset="1" stop-color="#071C56"/>
+    </linearGradient>
+    <linearGradient id="kt-blue-soft" x1="94" y1="54" x2="176" y2="176" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D8F7FF"/>
+      <stop offset="0.3" stop-color="#53A7FF"/>
+      <stop offset="1" stop-color="#1250D6"/>
+    </linearGradient>
+    <linearGradient id="kt-gold" x1="38" y1="38" x2="220" y2="216" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF5C2"/>
+      <stop offset="0.32" stop-color="#F4CB62"/>
+      <stop offset="0.64" stop-color="#C98A16"/>
+      <stop offset="1" stop-color="#FFE9A3"/>
+    </linearGradient>
+    <linearGradient id="kt-case" x1="170" y1="54" x2="216" y2="202" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173E95"/>
+      <stop offset="0.56" stop-color="#0A1E56"/>
+      <stop offset="1" stop-color="#040D2C"/>
+    </linearGradient>
+    <radialGradient id="kt-fan" cx="0" cy="0" r="1" gradientTransform="translate(192 105) rotate(90) scale(20)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E7FBFF"/>
+      <stop offset="0.5" stop-color="#3BA8FF"/>
+      <stop offset="1" stop-color="#0B2C89"/>
+    </radialGradient>
+    <filter id="kt-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <path d="M57 58C34 80 26 108 30 139c4 34 26 64 58 78" stroke="url(#kt-gold)" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+  <path d="M199 198c23-22 31-50 27-81-4-34-26-64-58-78" stroke="url(#kt-gold)" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+
+  <g filter="url(#kt-glow)">
+    <path d="M48 58h40v140H48z" fill="url(#kt-blue)" stroke="url(#kt-gold)" stroke-width="3"/>
+    <path d="M88 125 151 58h45l-74 82-34 7z" fill="url(#kt-blue-soft)" stroke="url(#kt-gold)" stroke-width="3" stroke-linejoin="round"/>
+    <path d="m88 138 34-6 73 69h-45l-62-52z" fill="url(#kt-blue)" stroke="url(#kt-gold)" stroke-width="3" stroke-linejoin="round"/>
+
+    <rect x="168" y="56" width="50" height="146" rx="7" fill="url(#kt-case)" stroke="url(#kt-gold)" stroke-width="3"/>
+    <path d="M181 70h24v74h-24z" fill="#071B52" stroke="#3E8DFF" stroke-width="1.4"/>
+    <path d="M185 108c0-6.6 5.2-12 11.6-12 6.4 0 11.6 5.4 11.6 12s-5.2 12-11.6 12c-6.4 0-11.6-5.4-11.6-12Z" fill="url(#kt-fan)" stroke="url(#kt-gold)" stroke-width="1.6"/>
+    <path d="M196.6 101.4c4.1 2.2 5.6 7.2 3.4 11.1-2.2 4-7.4 5.5-11.4 3.3-4.1-2.2-5.6-7.2-3.4-11.1 2.2-4 7.4-5.5 11.4-3.3Z" fill="#061747" opacity="0.78"/>
+    <circle cx="196.6" cy="108.6" r="3.1" fill="url(#kt-gold)"/>
+    <path d="M180 157h27M180 165h27M180 173h27M180 181h18" stroke="#3E8DFF" stroke-width="2.4" stroke-linecap="round" opacity="0.75"/>
+    <path d="M214 62v134" stroke="#8BE9FF" stroke-width="1.2" opacity="0.65"/>
+  </g>
+
+  <path d="M78 208h100" stroke="url(#kt-gold)" stroke-width="5" stroke-linecap="round"/>
+</svg>
