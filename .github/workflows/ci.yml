@@ -31,6 +31,13 @@ jobs:
       AUTH_SECRET: "ci-auth-secret-minimum-32-characters-long-key"
       AUTH_TRUST_HOST: "true"
       NODE_ENV: "test"
+      SEED_ADMIN_EMAIL: "admin@ci.local"
+      SEED_ADMIN_PASSWORD: "CiAdminPass!2345"
+      SEED_TECH1_EMAIL: "tech1@ci.local"
+      SEED_TECH1_PASSWORD: "CiTech1Pass!2345"
+      SEED_TECH2_EMAIL: "tech2@ci.local"
+      SEED_TECH2_PASSWORD: "CiTech2Pass!2345"
+      SEED_SHOP_NAME: "KAIOAK TECH"
 
     steps:
       - name: Checkout repository
@@ -50,6 +57,9 @@ jobs:
 
       - name: Setup Test Database Schema
         run: npx prisma db push
+
+      - name: Seed Test Data
+        run: npm run db:seed:demo
 
       - name: Typecheck
         run: npm run typecheck
