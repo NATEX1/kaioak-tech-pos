@@ -51,4 +51,8 @@ next-env.d.ts
 /.impeccable/
 /screenshot/
 
+# local reference material, not part of the app
+/Excellent-Com-POS1.html
+/reference/
+
 /src/generated/prisma

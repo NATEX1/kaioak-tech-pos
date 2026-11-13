@@ -8,6 +8,7 @@ WORKDIR /app
 # 2. Dependencies
 FROM base AS deps
 COPY package.json package-lock.json ./
+COPY prisma7.config.ts ./
 COPY prisma ./prisma/
 RUN npm ci
 
@@ -17,6 +18,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+# Prisma is initialized at module load. Page-data collection only needs the
+# variable to be present; the real connection string is injected at runtime.
+ENV DATABASE_URL="postgresql://build:build@127.0.0.1:5432/build?schema=public"
 RUN npx prisma generate
 RUN npm run build
 
@@ -34,6 +38,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma7.config.ts ./prisma7.config.ts
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src/generated ./src/generated
 

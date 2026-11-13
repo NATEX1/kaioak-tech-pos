@@ -170,9 +170,35 @@ export function BillWorkflowForm({
             className={selectClassName}
           >
             <option value="CASH">เงินสด</option>
+            <option value="QR">พร้อมเพย์ / QR</option>
             <option value="TRANSFER">โอนเงิน</option>
             <option value="CARD">บัตร</option>
           </select>
+          <label
+            htmlFor={`received-${billId}`}
+            className="text-xs font-medium text-muted-foreground"
+          >
+            รับเงินมา (เว้นว่าง = ยอดเต็ม)
+          </label>
+          <input
+            id={`received-${billId}`}
+            name="receivedAmount"
+            inputMode="decimal"
+            placeholder="0.00"
+            className="h-9 w-full rounded-lg border bg-background px-3 text-right text-sm tabular-nums"
+          />
+          <label
+            htmlFor={`reference-${billId}`}
+            className="text-xs font-medium text-muted-foreground"
+          >
+            อ้างอิงการชำระ (ถ้ามี)
+          </label>
+          <input
+            id={`reference-${billId}`}
+            name="paymentReference"
+            placeholder="เลขที่รายการโอน"
+            className="h-9 w-full rounded-lg border bg-background px-3 text-sm"
+          />
         </div>
       ) : null}
 

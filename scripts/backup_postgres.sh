@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# KAIOAK TECH POS — PostgreSQL Backup Script
+# KLYX LAB POS — PostgreSQL Backup Script
 # =============================================================================
 # เรียกใช้จาก cron หรือ CI/CD:
 #   chmod +x scripts/backup_postgres.sh

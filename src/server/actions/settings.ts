@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import type { ActionState } from "@/lib/action-state";
+import { REPAIR_STATUS_ORDER } from "@/lib/messaging";
 import { requireAdmin } from "@/server/auth/session";
 import {
   SettingsServiceError,
@@ -30,6 +31,15 @@ function withSubmission(
   };
 }
 
+function messageTemplatesFrom(formData: FormData): Record<string, string> {
+  return Object.fromEntries(
+    REPAIR_STATUS_ORDER.map((status) => [
+      status,
+      stringValue(formData, `template_${status}`),
+    ]).filter(([, value]) => value.trim().length > 0),
+  );
+}
+
 export async function updateShopSettingsAction(
   previousState: ActionState,
   formData: FormData,
@@ -46,6 +56,14 @@ export async function updateShopSettingsAction(
     vatIncluded: checkboxValue(formData, "vatIncluded"),
     receiptFooter: formData.get("receiptFooter"),
     logoUrl: formData.get("logoUrl"),
+    promptpayId: formData.get("promptpayId"),
+    bankInfo: formData.get("bankInfo"),
+    lineId: formData.get("lineId"),
+    whatsapp: formData.get("whatsapp"),
+    repairWarrantyDays: formData.get("repairWarrantyDays"),
+    quoteValidityDays: formData.get("quoteValidityDays"),
+    repairTerms: formData.get("repairTerms"),
+    messageTemplates: messageTemplatesFrom(formData),
   });
 
   if (!parsed.success) {
@@ -64,6 +82,13 @@ export async function updateShopSettingsAction(
         vatIncluded: checkboxValue(formData, "vatIncluded") ? "true" : "false",
         receiptFooter: stringValue(formData, "receiptFooter"),
         logoUrl: stringValue(formData, "logoUrl"),
+        promptpayId: stringValue(formData, "promptpayId"),
+        bankInfo: stringValue(formData, "bankInfo"),
+        lineId: stringValue(formData, "lineId"),
+        whatsapp: stringValue(formData, "whatsapp"),
+        repairWarrantyDays: stringValue(formData, "repairWarrantyDays"),
+        quoteValidityDays: stringValue(formData, "quoteValidityDays"),
+        repairTerms: stringValue(formData, "repairTerms"),
       },
     });
   }

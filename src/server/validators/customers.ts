@@ -55,6 +55,17 @@ const taxIdSchema = z
     "เลขผู้เสียภาษีต้องมี 13 หลัก",
   );
 
+const contactPhoneSchema = z
+  .string()
+  .trim()
+  .max(32, "เบอร์ติดต่อยาวเกินกำหนด")
+  .optional()
+  .refine(
+    (value) => !value || /^[0-9+\-() ]{6,32}$/.test(value),
+    "รูปแบบเบอร์ติดต่อไม่ถูกต้อง",
+  )
+  .transform((value) => (value ? value.trim() : undefined));
+
 const customerFields = {
   name: z
     .string()
@@ -66,6 +77,13 @@ const customerFields = {
   address: optionalText(2000),
   taxId: taxIdSchema,
   note: optionalText(2000),
+  lineId: z
+    .string()
+    .trim()
+    .max(100, "LINE ID ยาวเกินกำหนด")
+    .optional()
+    .transform((value) => (value ? value : undefined)),
+  whatsapp: contactPhoneSchema,
 };
 
 export const customerCreateSchema = z.object(customerFields);

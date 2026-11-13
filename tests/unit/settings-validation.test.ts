@@ -3,23 +3,23 @@ import { describe, expect, it } from "vitest";
 import { shopSettingsSchema } from "@/server/validators/settings";
 
 const validSettings = {
-  shopName: "KAIOAK TECH",
+  shopName: "KLYX LAB",
   address: "123 ถนนตัวอย่าง กรุงเทพมหานคร",
   phone: "021234567",
-  email: "CONTACT@KAIOAK.LOCAL",
+  email: "CONTACT@KLYXLAB.LOCAL",
   taxId: "1234567890123",
   vatEnabled: true,
   vatRate: "7.00",
   vatIncluded: true,
   receiptFooter: "ขอบคุณที่ใช้บริการ",
-  logoUrl: "/brand/kaioak-tech-mark.svg",
+  logoUrl: "/brand/klyx-lab-logo.webp",
 };
 
 describe("shop settings validation", () => {
   it("normalizes optional fields and VAT rate", () => {
     const parsed = shopSettingsSchema.parse({
       ...validSettings,
-      email: "  CONTACT@KAIOAK.LOCAL ",
+      email: "  CONTACT@KLYXLAB.LOCAL ",
       address: "  ",
       phone: "",
       taxId: "",
@@ -28,7 +28,7 @@ describe("shop settings validation", () => {
     });
 
     expect(parsed.shopName).toBe(validSettings.shopName);
-    expect(parsed.email).toBe("contact@kaioak.local");
+    expect(parsed.email).toBe("contact@klyxlab.local");
     expect(parsed.address).toBeUndefined();
     expect(parsed.phone).toBeUndefined();
     expect(parsed.taxId).toBeUndefined();
@@ -39,7 +39,7 @@ describe("shop settings validation", () => {
 
   it("accepts a public-folder logo path and rejects non-local URLs", () => {
     expect(shopSettingsSchema.parse(validSettings).logoUrl).toBe(
-      "/brand/kaioak-tech-mark.svg",
+      "/brand/klyx-lab-logo.webp",
     );
     expect(
       shopSettingsSchema.safeParse({

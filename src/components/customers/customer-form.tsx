@@ -28,6 +28,8 @@ type CustomerInitial = {
   address: string;
   taxId: string;
   note: string;
+  lineId: string;
+  whatsapp: string;
 };
 
 export function CustomerForm({
@@ -105,6 +107,38 @@ export function CustomerForm({
             placeholder="name@example.com"
           />
           <FieldError fieldErrors={state.fieldErrors} field="email" />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="lineId">LINE ID</Label>
+          <Input
+            id="lineId"
+            name="lineId"
+            maxLength={100}
+            defaultValue={value("lineId")}
+            aria-invalid={Boolean(state.fieldErrors?.lineId)}
+            className={inputClassName}
+            placeholder="@customer หรือ LINE ID"
+          />
+          <FieldError fieldErrors={state.fieldErrors} field="lineId" />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="whatsapp">WhatsApp</Label>
+          <Input
+            id="whatsapp"
+            name="whatsapp"
+            inputMode="tel"
+            maxLength={32}
+            defaultValue={value("whatsapp")}
+            aria-invalid={Boolean(state.fieldErrors?.whatsapp)}
+            className={inputClassName}
+            placeholder="081-234-5678"
+          />
+          <FieldError fieldErrors={state.fieldErrors} field="whatsapp" />
+          <p className="text-[11px] text-muted-foreground">
+            ใช้สำหรับส่งข้อความแจ้งสถานะงานซ่อมและใบเสนอราคา
+          </p>
         </div>
 
         <div className="space-y-2 sm:col-span-2">

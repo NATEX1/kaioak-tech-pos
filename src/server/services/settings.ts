@@ -1,5 +1,8 @@
 import "server-only";
 
+import { connection } from "next/server";
+
+import { Prisma } from "@/generated/prisma/client";
 import type { Role } from "@/generated/prisma/enums";
 
 import { prisma } from "@/lib/db";
@@ -24,6 +27,14 @@ export type ShopSettings = {
   vatIncluded: boolean;
   receiptFooter: string | null;
   logoUrl: string | null;
+  promptpayId: string | null;
+  bankInfo: string | null;
+  lineId: string | null;
+  whatsapp: string | null;
+  repairWarrantyDays: number;
+  quoteValidityDays: number;
+  repairTerms: string | null;
+  messageTemplates: Record<string, string> | null;
   createdAt: Date;
   updatedAt: Date;
   createdById: string | null;
@@ -52,6 +63,14 @@ const settingsSelect = {
   vatIncluded: true,
   receiptFooter: true,
   logoUrl: true,
+  promptpayId: true,
+  bankInfo: true,
+  lineId: true,
+  whatsapp: true,
+  repairWarrantyDays: true,
+  quoteValidityDays: true,
+  repairTerms: true,
+  messageTemplates: true,
   createdAt: true,
   updatedAt: true,
   createdById: true,
@@ -60,7 +79,7 @@ const settingsSelect = {
 
 const fallbackSettings = (): ShopSettings => ({
   id: "main",
-  shopName: "KAIOAK TECH",
+  shopName: "KLYX LAB",
   address: null,
   phone: null,
   email: null,
@@ -69,12 +88,45 @@ const fallbackSettings = (): ShopSettings => ({
   vatRate: new Decimal(7),
   vatIncluded: true,
   receiptFooter: null,
-  logoUrl: "/brand/kaioak-tech-mark.svg",
+  logoUrl: "/brand/klyx-lab-logo.webp",
+  promptpayId: null,
+  bankInfo: null,
+  lineId: null,
+  whatsapp: null,
+  repairWarrantyDays: 30,
+  quoteValidityDays: 7,
+  repairTerms: null,
+  messageTemplates: null,
   createdAt: new Date(0),
   updatedAt: new Date(0),
   createdById: null,
   updatedById: null,
 });
+
+function parseMessageTemplates(
+  value: Prisma.JsonValue,
+): Record<string, string> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === "string",
+  );
+
+  return entries.length > 0 ? Object.fromEntries(entries) : null;
+}
+
+function normalizeSettings(
+  setting: Omit<ShopSettings, "messageTemplates"> & {
+    messageTemplates: Prisma.JsonValue;
+  },
+): ShopSettings {
+  return {
+    ...setting,
+    messageTemplates: parseMessageTemplates(setting.messageTemplates),
+  };
+}
 
 function assertAdmin(actor: SettingsActor): void {
   if (actor.role !== "ADMIN") {
@@ -86,12 +138,16 @@ function assertAdmin(actor: SettingsActor): void {
 }
 
 export async function getShopSettings(): Promise<ShopSettings> {
+  // Shop identity is request-time data (editable in settings). Defer it so
+  // `next build` does not query the database while collecting static shells.
+  await connection();
+
   const setting = await prisma.appSetting.findUnique({
     where: { id: "main" },
     select: settingsSelect,
   });
 
-  return setting ?? fallbackSettings();
+  return setting ? normalizeSettings(setting) : fallbackSettings();
 }
 
 function optional(value?: string): string | null {
@@ -110,6 +166,14 @@ function toAuditSettings(settings: ShopSettings) {
     vatIncluded: settings.vatIncluded,
     receiptFooter: settings.receiptFooter,
     logoUrl: settings.logoUrl,
+    promptpayId: settings.promptpayId,
+    bankInfo: settings.bankInfo,
+    lineId: settings.lineId,
+    whatsapp: settings.whatsapp,
+    repairWarrantyDays: settings.repairWarrantyDays,
+    quoteValidityDays: settings.quoteValidityDays,
+    repairTerms: settings.repairTerms,
+    messageTemplates: settings.messageTemplates,
   };
 }
 
@@ -136,6 +200,16 @@ export async function updateShopSettings(
       vatIncluded: input.vatIncluded,
       receiptFooter: optional(input.receiptFooter),
       logoUrl: optional(input.logoUrl),
+      promptpayId: optional(input.promptpayId)?.replace(/[^\d]/g, "") ?? null,
+      bankInfo: optional(input.bankInfo),
+      lineId: optional(input.lineId),
+      whatsapp: optional(input.whatsapp),
+      repairWarrantyDays: input.repairWarrantyDays ?? 30,
+      quoteValidityDays: input.quoteValidityDays ?? 7,
+      repairTerms: optional(input.repairTerms),
+      messageTemplates: input.messageTemplates
+        ? (input.messageTemplates as Prisma.InputJsonValue)
+        : Prisma.DbNull,
       updatedById: actor.id,
     };
 
@@ -150,18 +224,20 @@ export async function updateShopSettings(
       select: settingsSelect,
     });
 
+    const normalized = normalizeSettings(updated);
+
     await writeAuditLog(
       {
         actorId: actor.id,
         action: "SETTINGS_UPDATED",
         entityType: "AppSetting",
         entityId: updated.id,
-        before: before ? toAuditSettings(before) : undefined,
-        after: toAuditSettings(updated),
+        before: before ? toAuditSettings(normalizeSettings(before)) : undefined,
+        after: toAuditSettings(normalized),
       },
       tx,
     );
 
-    return updated;
+    return normalized;
   });
 }

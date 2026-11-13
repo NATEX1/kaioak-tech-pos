@@ -57,7 +57,8 @@ export default async function ShopSettingsPage({
               ข้อมูลร้านและการพิมพ์
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              ข้อมูลหัวใบเสร็จ ข้อความท้ายใบเสร็จ และค่า VAT สำหรับบิลใหม่
+              จัดการข้อมูลร้าน การชำระเงิน งานซ่อม ใบเสนอราคา
+              และข้อความแจ้งลูกค้าแยกตามหมวด
             </p>
           </div>
           <Link
@@ -82,9 +83,10 @@ export default async function ShopSettingsPage({
             <div className="flex items-center gap-2 text-primary">
               <Store className="size-4" aria-hidden />
               <div>
-                <CardTitle>ข้อมูลร้าน</CardTitle>
+                <CardTitle>ตั้งค่าการจัดการร้าน</CardTitle>
                 <CardDescription>
-                  ชื่อร้าน โลโก้ และข้อมูลติดต่อที่แสดงบนหัวเอกสาร
+                  เลือกหมวดที่ต้องการแก้ไข แล้วกดบันทึกครั้งเดียว
+                  เพื่ออัปเดตทุกส่วนพร้อมกัน
                 </CardDescription>
               </div>
             </div>
@@ -102,6 +104,14 @@ export default async function ShopSettingsPage({
                 vatIncluded: settings.vatIncluded,
                 receiptFooter: settings.receiptFooter,
                 logoUrl: settings.logoUrl,
+                promptpayId: settings.promptpayId,
+                bankInfo: settings.bankInfo,
+                lineId: settings.lineId,
+                whatsapp: settings.whatsapp,
+                repairWarrantyDays: settings.repairWarrantyDays,
+                quoteValidityDays: settings.quoteValidityDays,
+                repairTerms: settings.repairTerms,
+                messageTemplates: settings.messageTemplates,
               }}
             />
           </CardContent>

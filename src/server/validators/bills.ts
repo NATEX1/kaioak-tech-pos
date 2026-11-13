@@ -6,8 +6,8 @@ const optionalText = (max: number) =>
     .string()
     .trim()
     .max(max, `ข้อความต้องไม่เกิน ${max} ตัวอักษร`)
-    .optional()
-    .transform((value) => (value ? value : undefined));
+    .transform((value) => (value ? value : undefined))
+    .optional();
 
 const moneySchema = z
   .string()
@@ -18,6 +18,17 @@ const moneySchema = z
   .refine((value) => Number(value) <= 9_999_999_999.99, {
     message: "จำนวนเงินเกินขีดจำกัด",
   });
+
+const optionalMoneySchema = z.preprocess(
+  (value) =>
+    typeof value === "string" && value.trim() === "" ? undefined : value,
+  z
+    .string()
+    .trim()
+    .max(20)
+    .regex(/^\d{1,10}(?:\.\d{1,2})?$/, "จำนวนเงินไม่ถูกต้อง")
+    .optional(),
+);
 
 const discountTypeSchema = z.preprocess(
   (value) => (value === "" || value == null ? null : value),
@@ -90,10 +101,17 @@ const repairSchema = z.object({
   reportedSymptoms: optionalText(2_000),
   diagnosis: optionalText(2_000),
   resolution: optionalText(2_000),
+  accessories: optionalText(2_000),
+  devicePasscode: optionalText(200),
+  estimatedCost: optionalMoneySchema,
+  depositAmount: optionalMoneySchema,
+  dueAt: optionalText(40),
+  warrantyDays: z.coerce.number().int().min(0).max(3650).optional(),
   repairStatus: z
     .enum([
       "RECEIVED",
       "INSPECTING",
+      "WAITING_APPROVAL",
       "WAITING_PARTS",
       "REPAIRING",
       "COMPLETED",
@@ -159,9 +177,12 @@ export const billRejectSchema = z.object({
 
 export const billPaySchema = z.object({
   billId: idSchema,
-  paymentMethod: z.enum(["CASH", "TRANSFER", "CARD"], {
+  paymentMethod: z.enum(["CASH", "TRANSFER", "CARD", "QR"], {
     message: "กรุณาเลือกวิธีชำระเงิน",
   }),
+  receivedAmount: optionalMoneySchema,
+  changeAmount: optionalMoneySchema,
+  paymentReference: optionalText(120),
 });
 
 export const billVoidSchema = z.object({

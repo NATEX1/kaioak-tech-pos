@@ -37,7 +37,7 @@ jobs:
       SEED_TECH1_PASSWORD: "CiTech1Pass!2345"
       SEED_TECH2_EMAIL: "tech2@ci.local"
       SEED_TECH2_PASSWORD: "CiTech2Pass!2345"
-      SEED_SHOP_NAME: "KAIOAK TECH"
+      SEED_SHOP_NAME: "KLYX LAB"
 
     steps:
       - name: Checkout repository

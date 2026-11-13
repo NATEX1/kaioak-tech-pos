@@ -28,6 +28,8 @@ function customerValues(formData: FormData): Record<string, string> {
     address: stringValue(formData, "address"),
     taxId: stringValue(formData, "taxId"),
     note: stringValue(formData, "note"),
+    lineId: stringValue(formData, "lineId"),
+    whatsapp: stringValue(formData, "whatsapp"),
   };
 }
 
@@ -58,6 +60,8 @@ export async function createCustomerAction(
     address: formData.get("address"),
     taxId: formData.get("taxId"),
     note: formData.get("note"),
+    lineId: formData.get("lineId"),
+    whatsapp: formData.get("whatsapp"),
   });
 
   if (!parsed.success) {
@@ -104,6 +108,8 @@ export async function updateCustomerAction(
     address: formData.get("address"),
     taxId: formData.get("taxId"),
     note: formData.get("note"),
+    lineId: formData.get("lineId"),
+    whatsapp: formData.get("whatsapp"),
   });
 
   if (!parsed.success) {

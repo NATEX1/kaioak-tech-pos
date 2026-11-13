@@ -2,22 +2,22 @@ import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
-export const DEFAULT_SHOP_NAME = "KAIOAK TECH";
-export const DEFAULT_BRAND_LOGO = "/brand/kaioak-tech-mark.svg";
-export const DEFAULT_BRAND_TAGLINE = "ซ่อมคอม · ประกอบคอม · อัพเกรด";
+export const DEFAULT_SHOP_NAME = "KLYX LAB";
+export const DEFAULT_BRAND_LOGO = "/brand/klyx-lab-logo.webp";
+export const DEFAULT_BRAND_TAGLINE = "COMPUTER REPAIR & BUILD";
 
 type BrandSize = "sm" | "md" | "lg";
 
 const logoSizes: Record<BrandSize, string> = {
-  sm: "size-9",
-  md: "size-11",
-  lg: "size-14",
+  sm: "size-11",
+  md: "size-14",
+  lg: "size-[72px]",
 };
 
 const logoPixels: Record<BrandSize, number> = {
-  sm: 36,
-  md: 44,
-  lg: 56,
+  sm: 44,
+  md: 56,
+  lg: 72,
 };
 
 function resolvedLogo(src?: string | null): string {

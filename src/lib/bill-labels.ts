@@ -3,9 +3,11 @@ import type {
   BillStatus,
   DiscountType,
   PaymentMethod,
+  QuoteStatus,
   RepairStatus,
   WarrantyCheckResult,
 } from "@/generated/prisma/enums";
+import { STATUS_TONE_CLASS } from "@/lib/status-tones";
 
 export function billStatusLabel(status: BillStatus): string {
   switch (status) {
@@ -29,15 +31,15 @@ export function billStatusLabel(status: BillStatus): string {
 export function billStatusBadgeClass(status: BillStatus): string {
   switch (status) {
     case "PAID":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+      return STATUS_TONE_CLASS.emerald;
     case "APPROVED":
-      return "border-blue-200 bg-blue-50 text-blue-700";
+      return STATUS_TONE_CLASS.blue;
     case "PENDING_APPROVAL":
-      return "border-amber-200 bg-amber-50 text-amber-700";
+      return STATUS_TONE_CLASS.amber;
     case "REJECTED":
-      return "border-rose-200 bg-rose-50 text-rose-700";
+      return STATUS_TONE_CLASS.rose;
     case "VOIDED":
-      return "border-slate-200 bg-slate-50 text-slate-600";
+      return STATUS_TONE_CLASS.slate;
     default:
       return "";
   }
@@ -70,8 +72,46 @@ export function paymentMethodLabel(method: PaymentMethod | null): string {
       return "โอนเงิน";
     case "CARD":
       return "บัตร";
+    case "QR":
+      return "พร้อมเพย์ / QR";
     default:
       return "—";
+  }
+}
+
+export function quoteStatusLabel(status: QuoteStatus): string {
+  switch (status) {
+    case "DRAFT":
+      return "ร่าง";
+    case "SENT":
+      return "ส่งแล้ว";
+    case "ACCEPTED":
+      return "ลูกค้าตอบรับ";
+    case "CONVERTED":
+      return "เปิดบิลแล้ว";
+    case "EXPIRED":
+      return "หมดอายุ";
+    case "CANCELLED":
+      return "ยกเลิก";
+    default:
+      return status;
+  }
+}
+
+export function quoteStatusBadgeClass(status: QuoteStatus): string {
+  switch (status) {
+    case "SENT":
+      return STATUS_TONE_CLASS.blue;
+    case "ACCEPTED":
+      return STATUS_TONE_CLASS.emerald;
+    case "CONVERTED":
+      return STATUS_TONE_CLASS.teal;
+    case "EXPIRED":
+      return STATUS_TONE_CLASS.amber;
+    case "CANCELLED":
+      return STATUS_TONE_CLASS.slate;
+    default:
+      return "";
   }
 }
 
@@ -87,6 +127,8 @@ export function repairStatusLabel(status: RepairStatus): string {
       return "รับเครื่องแล้ว";
     case "INSPECTING":
       return "กำลังตรวจสอบ";
+    case "WAITING_APPROVAL":
+      return "รออนุมัติราคา";
     case "WAITING_PARTS":
       return "รออะไหล่";
     case "REPAIRING":
@@ -120,11 +162,11 @@ export function warrantyCheckResultClass(
 ): string {
   switch (result) {
     case "FOUND_IN_WARRANTY":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+      return STATUS_TONE_CLASS.emerald;
     case "FOUND_OUT_OF_WARRANTY":
-      return "border-amber-200 bg-amber-50 text-amber-800";
+      return STATUS_TONE_CLASS.amber;
     case "NOT_FOUND":
-      return "border-rose-200 bg-rose-50 text-rose-700";
+      return STATUS_TONE_CLASS.rose;
     default:
       return "";
   }

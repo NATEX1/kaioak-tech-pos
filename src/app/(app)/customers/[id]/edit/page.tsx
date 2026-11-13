@@ -84,6 +84,8 @@ export default async function EditCustomerPage({
                 address: customer.address ?? "",
                 taxId: customer.taxId ?? "",
                 note: customer.note ?? "",
+                lineId: customer.lineId ?? "",
+                whatsapp: customer.whatsapp ?? "",
               }}
             />
           </CardContent>

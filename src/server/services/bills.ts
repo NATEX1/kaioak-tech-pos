@@ -84,6 +84,9 @@ const billDetailSelect = {
   vatAmount: true,
   grandTotal: true,
   paymentMethod: true,
+  paymentReference: true,
+  receivedAmount: true,
+  changeAmount: true,
   rejectionReason: true,
   voidReason: true,
   submittedAt: true,
@@ -159,6 +162,12 @@ const billDetailSelect = {
       reportedSymptoms: true,
       diagnosis: true,
       resolution: true,
+      accessories: true,
+      devicePasscode: true,
+      estimatedCost: true,
+      depositAmount: true,
+      dueAt: true,
+      warrantyDays: true,
       repairStatus: true,
       receivedAt: true,
       completedAt: true,
@@ -790,6 +799,12 @@ async function writeBillItems(
   }
 }
 
+function parseOptionalDate(value?: string): Date | null {
+  if (!value?.trim()) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 function repairData(
   input: NonNullable<BillCreateInput["repair"]>,
 ) {
@@ -800,6 +815,16 @@ function repairData(
     reportedSymptoms: input.reportedSymptoms?.trim() ?? "",
     diagnosis: optional(input.diagnosis),
     resolution: optional(input.resolution),
+    accessories: optional(input.accessories),
+    devicePasscode: optional(input.devicePasscode),
+    estimatedCost: input.estimatedCost
+      ? new Decimal(input.estimatedCost)
+      : null,
+    depositAmount: input.depositAmount
+      ? new Decimal(input.depositAmount)
+      : new Decimal(0),
+    dueAt: parseOptionalDate(input.dueAt),
+    warrantyDays: input.warrantyDays ?? 30,
     repairStatus: input.repairStatus ?? ("RECEIVED" as const),
   };
 }
@@ -1919,6 +1944,11 @@ export async function markBillPaid(
   actor: BillActor,
   billId: string,
   paymentMethod: PaymentMethod,
+  options: {
+    receivedAmount?: string;
+    changeAmount?: string;
+    paymentReference?: string;
+  } = {},
 ) {
   assertAdmin(actor);
 
@@ -1926,7 +1956,12 @@ export async function markBillPaid(
     await lockInventoryKey(tx, `bill:${billId}`);
     const bill = await tx.bill.findUnique({
       where: { id: billId },
-      select: { id: true, billNumber: true, status: true },
+      select: {
+        id: true,
+        billNumber: true,
+        status: true,
+        grandTotal: true,
+      },
     });
 
     if (!bill) {
@@ -1940,12 +1975,32 @@ export async function markBillPaid(
       );
     }
 
+    const receivedAmount = options.receivedAmount
+      ? new Decimal(options.receivedAmount)
+      : new Decimal(bill.grandTotal);
+    const rawChange = receivedAmount.minus(new Decimal(bill.grandTotal));
+    const changeAmount = options.changeAmount
+      ? new Decimal(options.changeAmount)
+      : rawChange.greaterThan(0)
+        ? rawChange
+        : new Decimal(0);
+
+    if (paymentMethod === "CASH" && receivedAmount.lessThan(bill.grandTotal)) {
+      throw new BillError(
+        "INVALID_DISCOUNT",
+        "ยอดรับเงินสดน้อยกว่ายอดที่ต้องชำระ",
+      );
+    }
+
     const now = new Date();
     await tx.bill.update({
       where: { id: bill.id },
       data: {
         status: "PAID",
         paymentMethod,
+        paymentReference: optional(options.paymentReference),
+        receivedAmount,
+        changeAmount,
         paidAt: now,
         paidById: actor.id,
       },
@@ -1969,7 +2024,13 @@ export async function markBillPaid(
         entityType: "Bill",
         entityId: bill.id,
         before: { status: "APPROVED" },
-        after: { status: "PAID", paymentMethod },
+        after: {
+          status: "PAID",
+          paymentMethod,
+          receivedAmount: receivedAmount.toFixed(2),
+          changeAmount: changeAmount.toFixed(2),
+          paymentReference: options.paymentReference?.trim() || null,
+        },
         metadata: { billNumber: bill.billNumber },
       },
       tx,

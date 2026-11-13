@@ -69,6 +69,32 @@ const vatRateSchema = z
     "อัตรา VAT ต้องอยู่ระหว่าง 0–100",
   );
 
+const optionalPromptPayId = z.preprocess(
+  (value) =>
+    typeof value === "string" && value.trim() === "" ? undefined : value,
+  z
+    .string()
+    .trim()
+    .max(32, "พร้อมเพย์ยาวเกินกำหนด")
+    .regex(/^[0-9+\-\s()]+$/, "พร้อมเพย์ใช้ได้เฉพาะตัวเลขและเครื่องหมาย")
+    .optional(),
+);
+
+const dayCountSchema = (
+  label: string,
+  max: number,
+  fallback: number,
+  min = 0,
+) =>
+  z.preprocess(
+    (value) => (value === "" || value == null ? fallback : value),
+    z.coerce
+      .number()
+      .int(`${label}ต้องเป็นจำนวนเต็ม`)
+      .min(min, min > 0 ? `${label}ต้องมากกว่า 0` : `${label}ต้องไม่ติดลบ`)
+      .max(max, `${label}สูงเกินกำหนด`),
+  );
+
 export const shopSettingsSchema = z.object({
   shopName: z
     .string()
@@ -84,6 +110,16 @@ export const shopSettingsSchema = z.object({
   vatIncluded: z.boolean(),
   receiptFooter: optionalText(1_000, "ข้อความท้ายใบเสร็จ"),
   logoUrl: optionalLogoUrl,
+  promptpayId: optionalPromptPayId,
+  bankInfo: optionalText(1_000, "ข้อมูลบัญชีธนาคาร"),
+  lineId: optionalText(100, "LINE ID"),
+  whatsapp: optionalPhone,
+  repairWarrantyDays: dayCountSchema("ระยะประกันงานซ่อม", 3_650, 30),
+  quoteValidityDays: dayCountSchema("อายุใบเสนอราคา", 365, 7, 1),
+  repairTerms: optionalText(2_000, "เงื่อนไขงานซ่อม"),
+  messageTemplates: z
+    .record(z.string(), z.string().trim().max(2_000, "ข้อความยาวเกินกำหนด"))
+    .optional(),
 });
 
 export type ShopSettingsInput = z.infer<typeof shopSettingsSchema>;

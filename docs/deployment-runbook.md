@@ -1,6 +1,9 @@
-# คู่มือการติดตั้งและขึ้นระบบ (Deployment Runbook) — KAIOAK TECH POS
+# คู่มือการติดตั้งและขึ้นระบบ (Deployment Runbook) — KLYX LAB POS
 
-เอกสารนี้ระบุขั้นตอนการติดตั้ง กำหนดค่า และดูแลรักษาระบบ KAIOAK TECH POS บนสภาพแวดล้อม Production อย่างปลอดภัยและมีเสถียรภาพ
+เอกสารนี้ระบุขั้นตอนการติดตั้ง กำหนดค่า และดูแลรักษาระบบ KLYX LAB POS บนสภาพแวดล้อม Production อย่างปลอดภัยและมีเสถียรภาพ
+
+> สำหรับ **เครื่องเซิร์ฟเวอร์จริงในร้าน (on-premise)** รวมถึงการเลือกฮาร์ดแวร์, ติดตั้ง Ubuntu Server, ตั้งค่า network/UPS, Docker Compose, Nginx, backup และ go-live checklist
+> ให้ใช้ [คู่มือเตรียมเครื่องเซิร์ฟเวอร์จริง](physical-server-setup.md) เป็นแนวทางหลัก
 
 ---
 
@@ -144,45 +147,13 @@ pm2 startup
 
 ---
 
-### วิธีที่ 2: ติดตั้งผ่าน Docker Compose
+### วิธีที่ 2: ติดตั้งผ่าน Docker Compose (แนะนำสำหรับเครื่องจริง)
 
-ไฟล์ `docker-compose.prod.yml` ตัวอย่าง:
+ใช้ไฟล์ `docker-compose.prod.yml` ใน repository โดยตรง ไม่ต้องคัดลอก compose จากเอกสารนี้
+ไฟล์จริงมี healthcheck, การผูกพอร์ตกับ `127.0.0.1`, `env_file` และการตั้งค่า timezone ให้แล้ว
 
-```yaml
-version: "3.8"
-
-services:
-  db:
-    image: postgres:17-alpine
-    restart: always
-    environment:
-      POSTGRES_DB: compos_prod
-      POSTGRES_USER: compos_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5432:5432"
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "127.0.0.1:3000:3000"
-    environment:
-      DATABASE_URL: "postgresql://compos_user:${DB_PASSWORD}@db:5432/compos_prod?schema=public"
-      AUTH_SECRET: ${AUTH_SECRET}
-      AUTH_URL: ${AUTH_URL}
-      AUTH_TRUST_HOST: "true"
-      NODE_ENV: "production"
-    depends_on:
-      - db
-
-volumes:
-  postgres_data:
-```
+ขั้นตอนแบบละเอียด (ฮาร์ดแวร์, Ubuntu, Docker, Nginx, UPS, backup) อยู่ใน
+[คู่มือเตรียมเครื่องเซิร์ฟเวอร์จริง](physical-server-setup.md)
 
 ---
 
@@ -245,7 +216,11 @@ sudo certbot --nginx -d pos.yourdomain.com
 ## 6. แผนสำรองข้อมูลและกู้คืน (Backup & Disaster Recovery)
 
 ### 6.1 การสำรองข้อมูลอัตโนมัติ (Automated Daily Backup)
-สร้างสคริปต์ `/opt/backup/backup_postgres.sh`:
+
+> ถ้าใช้ Docker Compose ให้ใช้ `scripts/backup_postgres_docker.sh` ซึ่งเรียก `pg_dump` ภายใน container โดยตรง
+> และไม่ต้องติดตั้ง PostgreSQL client บน host ดูรายละเอียดใน [คู่มือเตรียมเครื่องเซิร์ฟเวอร์จริง](physical-server-setup.md)
+
+สร้างสคริปต์ `/opt/backup/backup_postgres.sh` สำหรับแบบ bare metal:
 ```bash
 #!/bin/bash
 BACKUP_DIR="/opt/backup/dumps"

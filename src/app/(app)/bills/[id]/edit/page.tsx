@@ -87,6 +87,14 @@ export default async function EditBillPage({
           reportedSymptoms: bill.repairDetail.reportedSymptoms,
           diagnosis: bill.repairDetail.diagnosis ?? "",
           resolution: bill.repairDetail.resolution ?? "",
+          accessories: bill.repairDetail.accessories ?? "",
+          devicePasscode: bill.repairDetail.devicePasscode ?? "",
+          estimatedCost: bill.repairDetail.estimatedCost?.toFixed(2) ?? "",
+          depositAmount: bill.repairDetail.depositAmount.toFixed(2),
+          dueAt: bill.repairDetail.dueAt
+            ? bill.repairDetail.dueAt.toISOString().slice(0, 10)
+            : "",
+          warrantyDays: bill.repairDetail.warrantyDays,
           repairStatus: bill.repairDetail.repairStatus,
         }
       : undefined,

@@ -9,6 +9,7 @@ import {
   FilePlus2,
   Mail,
   MapPin,
+  MessageCircle,
   NotebookPen,
   PackageCheck,
   Pencil,
@@ -43,6 +44,7 @@ import {
   billStatusLabel,
 } from "@/lib/bill-labels";
 import { formatThaiDate, formatThaiDateTime } from "@/lib/labels";
+import { lineAddUrl, whatsAppUrl } from "@/lib/messaging";
 import { formatTHB } from "@/lib/money";
 import { formatThaiPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -263,6 +265,51 @@ export default async function CustomerDetailPage({
                       aria-hidden
                     />
                     {customer.email}
+                  </a>
+                ) : (
+                  <p className="mt-1 text-sm text-muted-foreground">—</p>
+                )}
+              </div>
+              <div>
+                <p className="text-[11px] font-medium text-muted-foreground">
+                  LINE ID
+                </p>
+                {customer.lineId ? (
+                  <a
+                    href={lineAddUrl(customer.lineId)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 flex items-center gap-2 text-sm font-medium hover:text-primary"
+                  >
+                    <MessageCircle
+                      className="size-4 text-muted-foreground"
+                      aria-hidden
+                    />
+                    {customer.lineId}
+                  </a>
+                ) : (
+                  <p className="mt-1 text-sm text-muted-foreground">—</p>
+                )}
+              </div>
+              <div>
+                <p className="text-[11px] font-medium text-muted-foreground">
+                  WhatsApp
+                </p>
+                {customer.whatsapp ? (
+                  <a
+                    href={whatsAppUrl(
+                      customer.whatsapp,
+                      `สวัสดีครับ ${customer.name}`,
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 flex items-center gap-2 text-sm font-medium hover:text-primary"
+                  >
+                    <MessageCircle
+                      className="size-4 text-muted-foreground"
+                      aria-hidden
+                    />
+                    {formatThaiPhone(customer.whatsapp)}
                   </a>
                 ) : (
                   <p className="mt-1 text-sm text-muted-foreground">—</p>

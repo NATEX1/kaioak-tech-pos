@@ -20,12 +20,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "KAIOAK TECH — ระบบขายหน้าร้านและงานซ่อม",
-    template: "%s | KAIOAK TECH",
+    default: "KLYX LAB — ระบบขายหน้าร้านและงานซ่อม",
+    template: "%s | KLYX LAB",
   },
   description:
     "ระบบ POS สำหรับร้านคอมพิวเตอร์: ขายสินค้า งานซ่อม บริการ เคลมสินค้า สต๊อก และค่าคอมมิชชั่น",
-  applicationName: "KAIOAK TECH POS",
+  applicationName: "KLYX LAB POS",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

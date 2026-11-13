@@ -1,13 +1,13 @@
-# KAIOAK TECH POS
+# KLYX LAB POS
 
-เว็บแอปพลิเคชัน POS ภาษาไทยสำหรับร้าน KAIOAK TECH — ขายสินค้า งานซ่อม งานบริการ และเคลมสินค้า พร้อม workflow อนุมัติบิล สต๊อกระดับ Serial, ประกัน และค่าคอมมิชชั่น
+เว็บแอปพลิเคชัน POS ภาษาไทยสำหรับร้าน KLYX LAB — ขายสินค้า งานซ่อม งานบริการ และเคลมสินค้า พร้อม workflow อนุมัติบิล สต๊อกระดับ Serial, ประกัน และค่าคอมมิชชั่น
 
 > สถานะโปรเจกต์: **ทุก Phase (Phase 1 ถึง Phase 10) พัฒนาและทดสอบเสร็จสมบูรณ์ พร้อมขึ้นระบบ Production**
 
 ## แบรนด์และธีม
 
-- **ชื่อร้าน:** KAIOAK TECH — แบรนด์แสดงจากข้อมูลร้านใน `/settings/shop` จึงเปลี่ยนได้โดยไม่ต้องแก้โค้ด
-- **โลโก้:** ไฟล์เริ่มต้นอยู่ที่ `public/brand/kaioak-tech-mark.svg`; สามารถเปลี่ยนพาธโลโก้ได้ในหน้าตั้งค่าข้อมูลร้าน
+- **ชื่อร้าน:** KLYX LAB — แบรนด์แสดงจากข้อมูลร้านใน `/settings/shop` จึงเปลี่ยนได้โดยไม่ต้องแก้โค้ด
+- **โลโก้:** ไฟล์เริ่มต้นอยู่ที่ `public/brand/klyx-lab-logo.webp`; สามารถเปลี่ยนพาธโลโก้ได้ในหน้าตั้งค่าข้อมูลร้าน
 - **โหมดสว่าง/มืด:** สลับได้จากปุ่มพระอาทิตย์/พระจันทร์ที่หัวแอป ระบบจำค่าที่เลือกใน `localStorage` และใช้ค่าจากระบบปฏิบัติการเมื่อยังไม่เคยเลือก
 - **หน้าเข้าสู่ระบบ:** คง dark brand canvas เพื่อให้แบรนด์เด่นชัด ส่วนการ์ดฟอร์มปรับตามธีม
 - **เอกสารพิมพ์:** A4, สลิป 80 มม. และป้ายบาร์โค้ดคงพื้นขาวเสมอ เพื่อความถูกต้องของเอกสาร
@@ -131,6 +131,8 @@
 - npm 10+
 - Docker Desktop (สำหรับ PostgreSQL)
 
+สำหรับการติดตั้งบน **เครื่องเซิร์ฟเวอร์จริงในร้าน (on-premise)** ดู [คู่มือเตรียมเครื่องเซิร์ฟเวอร์จริง](docs/physical-server-setup.md) ซึ่งครอบคลุมฮาร์ดแวร์ Ubuntu Server, Docker, Nginx, UPS, backup และ go-live checklist
+
 ## เริ่มใช้งาน
 
 1. ติดตั้ง dependencies
@@ -175,6 +177,26 @@
    ```
 
    เปิด [http://localhost:3000](http://localhost:3000) แล้วเข้าสู่ระบบด้วยบัญชีจาก `.env`
+
+### ทดสอบผ่าน ngrok / tunnel
+
+Next.js 16 บล็อก request ข้าม origin ไปยัง dev assets และ Server Actions โดยค่าเริ่มต้น
+โปรเจกต์นี้เปิด origin ของ ngrok และ Cloudflare Quick Tunnel ไว้ใน `next.config.ts` เฉพาะโหมด development แล้ว
+
+1. เปิด tunnel ไปที่พอร์ต 3000 เช่น
+
+   ```bash
+   ngrok http 3000
+   ```
+
+2. ปล่อย `AUTH_URL` ให้ว่างไว้ใน `.env` (มี `AUTH_TRUST_HOST=true` อยู่แล้ว)
+   เพื่อให้ Auth.js ใช้ host ของ request ปัจจุบัน ทำให้สลับระหว่าง `localhost` และ tunnel ได้โดยไม่ต้องแก้ไฟล์
+   หรือถ้าต้องการ fix URL ให้ตั้ง `AUTH_URL` เป็น URL ของ tunnel โดยไม่มี `/` ปิดท้าย
+
+3. เปิด URL ของ tunnel ครั้งแรก ngrok free อาจแสดงหน้า “Visit Site” ให้กดยืนยันหนึ่งครั้ง
+
+> HMR WebSocket อาจไม่ทำงานผ่าน tunnel แต่ตัวแอปยัง hydrate และกดใช้งานได้ปกติ
+> ถ้าแก้โค้ดแล้วหน้าไม่อัปเดต ให้ refresh หน้าใหม่
 
 ### บัญชีเริ่มต้น
 
@@ -481,3 +503,4 @@ docs/
 - [Phase 9 — Audit Log, Pagination และ Security](docs/09-phase-9-summary.md)
 - [Phase 10 — Production Launch Readiness](docs/10-phase-10-summary.md)
 - [คู่มือการติดตั้งและขึ้นระบบ (Deployment Runbook)](docs/deployment-runbook.md)
+- [คู่มือเตรียมเครื่องเซิร์ฟเวอร์จริง (On-premise)](docs/physical-server-setup.md)

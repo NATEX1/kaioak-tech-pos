@@ -91,14 +91,26 @@ export async function getBillingSettings() {
       vatEnabled: true,
       vatRate: true,
       vatIncluded: true,
+      promptpayId: true,
+      bankInfo: true,
+      lineId: true,
+      whatsapp: true,
+      repairWarrantyDays: true,
+      quoteValidityDays: true,
     },
   });
 
   return {
-    shopName: setting?.shopName ?? "KAIOAK TECH",
+    shopName: setting?.shopName ?? "KLYX LAB",
     vatEnabled: setting?.vatEnabled ?? false,
     vatRate: setting?.vatRate?.toString() ?? "7",
     vatIncluded: setting?.vatIncluded ?? true,
+    promptpayId: setting?.promptpayId ?? null,
+    bankInfo: setting?.bankInfo ?? null,
+    lineId: setting?.lineId ?? null,
+    whatsapp: setting?.whatsapp ?? null,
+    repairWarrantyDays: setting?.repairWarrantyDays ?? 30,
+    quoteValidityDays: setting?.quoteValidityDays ?? 7,
   };
 }
 

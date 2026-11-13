@@ -2,6 +2,20 @@ import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === "production";
 
+// Development tunnels such as ngrok serve the app from a different origin.
+// Next.js blocks cross-origin dev assets/endpoints unless the tunnel host is
+// explicitly allowed. These entries are intentionally disabled in production.
+const devTunnelOrigins = isProd
+  ? []
+  : [
+      "*.ngrok-free.dev",
+      "*.ngrok-free.app",
+      "*.ngrok.dev",
+      "*.ngrok.app",
+      "*.ngrok.io",
+      "*.trycloudflare.com",
+    ];
+
 // Content-Security-Policy
 // - 'unsafe-inline' for style-src: required for Tailwind CSS v4 / shadcn injected styles
 // - 'unsafe-eval' is included in development mode for React hot reload / stack trace debugging
@@ -24,9 +38,15 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  // Allow development through temporary tunnels (ngrok, Cloudflare Tunnel, etc.).
+  // `allowedDevOrigins` only affects the dev server. Server Actions perform a
+  // second origin check that also applies in production, so keep those entries
+  // development-only.
+  allowedDevOrigins: devTunnelOrigins,
   experimental: {
     serverActions: {
       bodySizeLimit: "4mb",
+      ...(isProd ? {} : { allowedOrigins: devTunnelOrigins }),
     },
   },
   turbopack: {

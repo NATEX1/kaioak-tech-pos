@@ -6,6 +6,7 @@ import type { BillStatus, Role } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import { normalizePhone, phoneSearchDigits } from "@/lib/phone";
 import { writeAuditLog } from "@/server/audit";
+import { lockInventoryKey } from "@/server/services/document-sequences";
 import {
   CustomerError,
   isCustomerUniqueConstraintError,
@@ -24,6 +25,8 @@ type CustomerWriteInput = {
   address?: string;
   taxId?: string;
   note?: string;
+  lineId?: string;
+  whatsapp?: string;
 };
 
 const FINAL_BILL_STATUSES: BillStatus[] = ["APPROVED", "PAID", "VOIDED"];
@@ -42,6 +45,8 @@ function normalizeWriteInput(input: CustomerWriteInput) {
     address: optional(input.address),
     taxId: input.taxId?.replace(/\D/g, "") || null,
     note: optional(input.note),
+    lineId: optional(input.lineId),
+    whatsapp: optional(input.whatsapp),
   };
 }
 
@@ -51,6 +56,9 @@ const customerListSelect = {
   phone: true,
   email: true,
   address: true,
+  lineId: true,
+  whatsapp: true,
+  isWalkIn: true,
   isActive: true,
   deletedAt: true,
   createdAt: true,
@@ -65,6 +73,9 @@ const customerDetailSelect = {
   address: true,
   taxId: true,
   note: true,
+  lineId: true,
+  whatsapp: true,
+  isWalkIn: true,
   isActive: true,
   deletedAt: true,
   createdAt: true,
@@ -195,6 +206,56 @@ export async function getCustomerById(
   });
 }
 
+export const WALK_IN_CUSTOMER_PHONE = "0000000000";
+export const WALK_IN_CUSTOMER_NAME = "ลูกค้าทั่วไป";
+
+export async function getWalkInCustomer() {
+  return prisma.customer.findFirst({
+    where: { isWalkIn: true, isActive: true, deletedAt: null },
+    select: { id: true, name: true, phone: true, lineId: true, whatsapp: true },
+  });
+}
+
+export async function ensureWalkInCustomer(actorId?: string) {
+  return prisma.$transaction(async (tx) => {
+    await lockInventoryKey(tx, "customer:walkin");
+
+    const existing = await tx.customer.findFirst({
+      where: { isWalkIn: true },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        lineId: true,
+        whatsapp: true,
+        isActive: true,
+        deletedAt: true,
+      },
+    });
+
+    if (existing) {
+      if (!existing.isActive || existing.deletedAt) {
+        await tx.customer.update({
+          where: { id: existing.id },
+          data: { isActive: true, deletedAt: null },
+        });
+      }
+
+      return existing;
+    }
+
+    return tx.customer.create({
+      data: {
+        name: WALK_IN_CUSTOMER_NAME,
+        phone: WALK_IN_CUSTOMER_PHONE,
+        isWalkIn: true,
+        createdById: actorId,
+      },
+      select: { id: true, name: true, phone: true, lineId: true, whatsapp: true },
+    });
+  });
+}
+
 export async function createCustomer(
   actor: CustomerActor,
   input: CustomerWriteInput,
@@ -223,6 +284,8 @@ export async function createCustomer(
             address: customer.address,
             taxId: customer.taxId,
             note: customer.note,
+            lineId: customer.lineId,
+            whatsapp: customer.whatsapp,
             isActive: customer.isActive,
           },
         },
@@ -262,6 +325,8 @@ export async function updateCustomer(
           address: true,
           taxId: true,
           note: true,
+          lineId: true,
+          whatsapp: true,
           isActive: true,
         },
       });
@@ -288,6 +353,8 @@ export async function updateCustomer(
             address: existing.address,
             taxId: existing.taxId,
             note: existing.note,
+            lineId: existing.lineId,
+            whatsapp: existing.whatsapp,
             isActive: existing.isActive,
           },
           after: {
@@ -297,6 +364,8 @@ export async function updateCustomer(
             address: updated.address,
             taxId: updated.taxId,
             note: updated.note,
+            lineId: updated.lineId,
+            whatsapp: updated.whatsapp,
             isActive: updated.isActive,
           },
         },

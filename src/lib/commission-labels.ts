@@ -6,6 +6,7 @@ import type {
   CommissionRuleType,
 } from "@/generated/prisma/enums";
 import { formatTHB } from "@/lib/money";
+import { STATUS_TONE_CLASS } from "@/lib/status-tones";
 
 export function commissionRuleTypeLabel(type: CommissionRuleType): string {
   switch (type) {
@@ -57,11 +58,11 @@ export function commissionEntryStatusClass(
 ): string {
   switch (status) {
     case "PENDING":
-      return "border-amber-200 bg-amber-50 text-amber-800";
+      return STATUS_TONE_CLASS.amber;
     case "PAID":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+      return STATUS_TONE_CLASS.emerald;
     case "REVERSED":
-      return "border-rose-200 bg-rose-50 text-rose-700";
+      return STATUS_TONE_CLASS.rose;
     default:
       return "";
   }

@@ -22,6 +22,7 @@ import {
   Wrench,
 } from "lucide-react";
 
+import { PromptPayQr } from "@/components/billing/promptpay-qr";
 import { BillStatusBadge } from "@/components/bills/bill-status-badge";
 import { BillWorkflowForm } from "@/components/bills/bill-workflow-forms";
 import { SuccessAlert } from "@/components/forms/form-feedback";
@@ -67,6 +68,7 @@ import {
   canViewBill,
   getBillById,
 } from "@/server/services/bills";
+import { getShopSettings } from "@/server/services/settings";
 
 export const instant = false;
 
@@ -100,9 +102,10 @@ export default async function BillDetailPage({
 }) {
   const actor = await requireUser();
   const { id } = await params;
-  const [bill, query] = await Promise.all([
+  const [bill, query, settings] = await Promise.all([
     getBillById({ id: actor.id, role: actor.role }, id),
     searchParams,
+    getShopSettings(),
   ]);
 
   if (!bill) {
@@ -404,6 +407,43 @@ export default async function BillDetailPage({
                     {bill.repairDetail.deviceSerial ?? "—"}
                   </p>
                 </div>
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    อุปกรณ์ที่ส่งมาด้วย
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm">
+                    {bill.repairDetail.accessories ?? "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    กำหนดรับเครื่อง
+                  </p>
+                  <p className="mt-1 text-sm">
+                    {formatThaiDate(bill.repairDetail.dueAt)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    ยอดประเมิน / เงินมัดจำ
+                  </p>
+                  <p className="mt-1 text-sm tabular-nums">
+                    {bill.repairDetail.estimatedCost
+                      ? formatTHB(bill.repairDetail.estimatedCost)
+                      : "—"}{" "}
+                    / {formatTHB(bill.repairDetail.depositAmount)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    ประกันงานซ่อม
+                  </p>
+                  <p className="mt-1 text-sm">
+                    {bill.repairDetail.warrantyDays > 0
+                      ? `${bill.repairDetail.warrantyDays} วัน`
+                      : "ไม่รับประกัน"}
+                  </p>
+                </div>
                 <div className="sm:col-span-2">
                   <p className="text-[11px] font-medium text-muted-foreground">
                     อาการเสีย
@@ -700,6 +740,32 @@ export default async function BillDetailPage({
                   </span>
                 </div>
               ) : null}
+              {bill.status === "PAID" ? (
+                <>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-muted-foreground">รับเงินมา</span>
+                    <span className="tabular-nums">
+                      {formatTHB(bill.receivedAmount)}
+                    </span>
+                  </div>
+                  {bill.changeAmount.greaterThan(0) ? (
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">เงินทอน</span>
+                      <span className="tabular-nums">
+                        {formatTHB(bill.changeAmount)}
+                      </span>
+                    </div>
+                  ) : null}
+                  {bill.paymentReference ? (
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">อ้างอิง</span>
+                      <span className="max-w-48 truncate text-right font-mono text-xs">
+                        {bill.paymentReference}
+                      </span>
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
               <dl className="space-y-1.5 border-t pt-3 text-[11px] text-muted-foreground">
                 <div className="flex justify-between gap-3">
                   <dt>ส่งขออนุมัติ</dt>
@@ -900,6 +966,28 @@ export default async function BillDetailPage({
                         รับชำระเงินหรือยกเลิกบิลพร้อมคืนสต๊อกได้จากที่นี่
                       </p>
                     </div>
+                    {settings.promptpayId ? (
+                      <div className="rounded-xl border bg-muted/20 p-3">
+                        <p className="text-xs font-medium">
+                          สแกนพร้อมเพย์เพื่อรับชำระ
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          ยอด {formatTHB(bill.grandTotal)} · อ้างอิง{" "}
+                          {bill.billNumber}
+                        </p>
+                        <PromptPayQr
+                          promptpayId={settings.promptpayId}
+                          amount={bill.grandTotal.toFixed(2)}
+                          reference={bill.billNumber}
+                          className="mt-3 min-h-0"
+                        />
+                        {settings.bankInfo ? (
+                          <p className="mt-2 whitespace-pre-wrap text-[11px] text-muted-foreground">
+                            {settings.bankInfo}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                     <BillWorkflowForm kind="pay" billId={bill.id} />
                     <div className="border-t pt-3">
                       <BillWorkflowForm kind="void" billId={bill.id} />

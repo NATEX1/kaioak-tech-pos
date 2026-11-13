@@ -274,6 +274,9 @@ export async function payBillAction(
   const parsed = billPaySchema.safeParse({
     billId: formData.get("billId"),
     paymentMethod: formData.get("paymentMethod"),
+    receivedAmount: formData.get("receivedAmount"),
+    changeAmount: formData.get("changeAmount"),
+    paymentReference: formData.get("paymentReference"),
   });
 
   if (!parsed.success) {
@@ -289,6 +292,11 @@ export async function payBillAction(
       { id: actor.id, role: actor.role },
       parsed.data.billId,
       parsed.data.paymentMethod,
+      {
+        receivedAmount: parsed.data.receivedAmount,
+        changeAmount: parsed.data.changeAmount,
+        paymentReference: parsed.data.paymentReference,
+      },
     );
   } catch (error) {
     if (error instanceof BillError) {

@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
+import { connection } from "next/server";
 
 import { prisma } from "@/lib/db";
 import { pruneExpiredRateLimits } from "@/server/auth/rate-limit";
 
 export async function GET() {
+  // Health checks must run at request time and must not be evaluated during
+  // `next build` (the build environment has no database connection).
+  await connection();
+
   const startTime = Date.now();
 
   try {

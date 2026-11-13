@@ -7,14 +7,18 @@ import {
   ClipboardList,
   Coins,
   Contact,
+  FileText,
   LayoutDashboard,
   PackageSearch,
   ReceiptText,
   Settings2,
   ShieldCheck,
+  ShoppingCart,
   Store,
   UserRound,
   UsersRound,
+  WalletCards,
+  Wrench,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -26,12 +30,15 @@ type AppNavProps = {
 
 const baseItems = [
   { href: "/", label: "ภาพรวม", icon: LayoutDashboard, exact: true },
+  { href: "/pos", label: "ขายหน้าร้าน", icon: ShoppingCart, exact: false },
   {
     href: "/bills",
     label: "บิลและอนุมัติ",
     icon: ReceiptText,
     exact: false,
   },
+  { href: "/repairs", label: "กระดานงานซ่อม", icon: Wrench, exact: false },
+  { href: "/quotes", label: "ใบเสนอราคา", icon: FileText, exact: false },
   {
     href: "/commissions",
     label: "ค่าคอมมิชชั่น",
@@ -62,6 +69,12 @@ const adminItems = [
     exact: false,
   },
   {
+    href: "/closing",
+    label: "ปิดยอดรายวัน",
+    icon: WalletCards,
+    exact: false,
+  },
+  {
     href: "/audit-logs",
     label: "บันทึกระบบ",
     icon: ClipboardList,
@@ -84,11 +97,7 @@ const adminItems = [
 export function AppNav({ isAdmin, variant = "desktop" }: AppNavProps) {
   const pathname = usePathname();
   const items = isAdmin
-    ? [
-        ...baseItems.slice(0, 6),
-        ...adminItems,
-        baseItems[6],
-      ]
+    ? [...baseItems.slice(0, 6), ...adminItems, ...baseItems.slice(6)]
     : baseItems;
 
   return (

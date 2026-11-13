@@ -89,7 +89,7 @@ export default async function ProductLabelPage({
       </div>
 
       {!selectedBarcode ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 print:hidden">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200 print:hidden">
           <div className="flex gap-2">
             <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
             สินค้านี้ยังไม่มีบาร์โค้ด กรุณาเพิ่มบาร์โค้ดก่อนพิมพ์ป้าย

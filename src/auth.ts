@@ -9,7 +9,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
-      name: "บัญชีผู้ใช้ KAIOAK TECH",
+      name: "บัญชีผู้ใช้ KLYX LAB",
       credentials: {
         email: { label: "อีเมล", type: "email" },
         password: { label: "รหัสผ่าน", type: "password" },

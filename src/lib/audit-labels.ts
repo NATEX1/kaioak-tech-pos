@@ -1,3 +1,5 @@
+import { STATUS_TONE_CLASS } from "@/lib/status-tones";
+
 const AUDIT_ACTION_LABELS: Record<string, string> = {
   AUTH_LOGIN_SUCCESS: "เข้าสู่ระบบสำเร็จ",
   AUTH_LOGIN_FAILED: "เข้าสู่ระบบไม่สำเร็จ",
@@ -69,7 +71,7 @@ export function auditActionTone(action: string): string {
     action.includes("ARCHIVED") ||
     action.includes("BLOCKED")
   ) {
-    return "border-rose-200 bg-rose-50 text-rose-700";
+    return STATUS_TONE_CLASS.rose;
   }
   if (
     action.includes("CREATE") ||
@@ -78,7 +80,7 @@ export function auditActionTone(action: string): string {
     action.includes("RESTORED") ||
     action.includes("ADDED")
   ) {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    return STATUS_TONE_CLASS.emerald;
   }
   if (
     action.includes("UPDATE") ||
@@ -88,10 +90,10 @@ export function auditActionTone(action: string): string {
     action.includes("CHANGED") ||
     action.includes("ADJUSTED")
   ) {
-    return "border-blue-200 bg-blue-50 text-blue-700";
+    return STATUS_TONE_CLASS.blue;
   }
   if (action.includes("LOGIN") || action.includes("LOGOUT")) {
-    return "border-violet-200 bg-violet-50 text-violet-700";
+    return STATUS_TONE_CLASS.violet;
   }
-  return "border-slate-200 bg-slate-50 text-slate-700";
+  return STATUS_TONE_CLASS.slate;
 }

@@ -111,11 +111,11 @@ async function main() {
     await prisma.appSetting.create({
       data: {
         id: "main",
-        shopName: process.env.SEED_SHOP_NAME?.trim() || "KAIOAK TECH",
+        shopName: process.env.SEED_SHOP_NAME?.trim() || "KLYX LAB",
         vatEnabled: false,
         vatRate: "7.00",
         vatIncluded: true,
-        logoUrl: "/brand/kaioak-tech-mark.svg",
+        logoUrl: "/brand/klyx-lab-logo.webp",
         createdById: admin.id,
       },
     });

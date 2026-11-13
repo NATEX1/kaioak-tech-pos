@@ -117,9 +117,16 @@ export type BillFormRepair = {
   reportedSymptoms?: string;
   diagnosis?: string;
   resolution?: string;
+  accessories?: string;
+  devicePasscode?: string;
+  estimatedCost?: string;
+  depositAmount?: string;
+  dueAt?: string;
+  warrantyDays?: number;
   repairStatus?:
     | "RECEIVED"
     | "INSPECTING"
+    | "WAITING_APPROVAL"
     | "WAITING_PARTS"
     | "REPAIRING"
     | "COMPLETED"
@@ -152,6 +159,7 @@ type Settings = {
   vatEnabled: boolean;
   vatRate: string;
   vatIncluded: boolean;
+  repairWarrantyDays: number;
 };
 
 type LineState = {
@@ -173,9 +181,16 @@ type RepairState = {
   reportedSymptoms: string;
   diagnosis: string;
   resolution: string;
+  accessories: string;
+  devicePasscode: string;
+  estimatedCost: string;
+  depositAmount: string;
+  dueAt: string;
+  warrantyDays: string;
   repairStatus:
     | "RECEIVED"
     | "INSPECTING"
+    | "WAITING_APPROVAL"
     | "WAITING_PARTS"
     | "REPAIRING"
     | "COMPLETED"
@@ -229,7 +244,11 @@ function normalizeLines(
   });
 }
 
-function repairFrom(value: unknown, fallback?: BillFormRepair): RepairState {
+function repairFrom(
+  value: unknown,
+  fallback?: BillFormRepair,
+  defaultWarrantyDays = 30,
+): RepairState {
   const source = (
     value && typeof value === "object" ? value : (fallback ?? {})
   ) as BillFormRepair;
@@ -241,6 +260,12 @@ function repairFrom(value: unknown, fallback?: BillFormRepair): RepairState {
     reportedSymptoms: source.reportedSymptoms ?? "",
     diagnosis: source.diagnosis ?? "",
     resolution: source.resolution ?? "",
+    accessories: source.accessories ?? "",
+    devicePasscode: source.devicePasscode ?? "",
+    estimatedCost: source.estimatedCost ?? "",
+    depositAmount: source.depositAmount ?? "0",
+    dueAt: source.dueAt ?? "",
+    warrantyDays: String(source.warrantyDays ?? defaultWarrantyDays),
     repairStatus: source.repairStatus ?? "RECEIVED",
   };
 }
@@ -382,7 +407,11 @@ function BillFormFields({
     ),
   );
   const [repair, setRepair] = useState<RepairState>(() =>
-    repairFrom(parseJson(value("repair")), initial?.repair),
+    repairFrom(
+      parseJson(value("repair")),
+      initial?.repair,
+      settings.repairWarrantyDays,
+    ),
   );
   const [claim, setClaim] = useState<ClaimState>(() =>
     claimFrom(parseJson(value("claim")), initial?.claim),
@@ -672,6 +701,12 @@ function BillFormFields({
         reportedSymptoms: repair.reportedSymptoms,
         diagnosis: repair.diagnosis,
         resolution: repair.resolution,
+        accessories: repair.accessories,
+        devicePasscode: repair.devicePasscode,
+        estimatedCost: repair.estimatedCost,
+        depositAmount: repair.depositAmount,
+        dueAt: repair.dueAt,
+        warrantyDays: repair.warrantyDays,
         repairStatus: repair.repairStatus,
       })
     : "";
@@ -1268,6 +1303,7 @@ function BillFormFields({
                       [
                         "RECEIVED",
                         "INSPECTING",
+                        "WAITING_APPROVAL",
                         "WAITING_PARTS",
                         "REPAIRING",
                         "COMPLETED",
@@ -1279,6 +1315,100 @@ function BillFormFields({
                       </option>
                     ))}
                   </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="accessories">อุปกรณ์ที่ส่งมาด้วย</Label>
+                  <Input
+                    id="accessories"
+                    value={repair.accessories}
+                    onChange={(event) =>
+                      setRepair((current) => ({
+                        ...current,
+                        accessories: event.target.value,
+                      }))
+                    }
+                    className={inputClassName}
+                    placeholder="เช่น อะแดปเตอร์ กระเป๋า เมาส์"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="devicePasscode">รหัสเครื่อง (ถ้าจำเป็น)</Label>
+                  <Input
+                    id="devicePasscode"
+                    value={repair.devicePasscode}
+                    onChange={(event) =>
+                      setRepair((current) => ({
+                        ...current,
+                        devicePasscode: event.target.value,
+                      }))
+                    }
+                    className={inputClassName}
+                    placeholder="ใช้สำหรับช่างเท่านั้น"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="estimatedCost">ยอดประเมิน (บาท)</Label>
+                  <Input
+                    id="estimatedCost"
+                    value={repair.estimatedCost}
+                    onChange={(event) =>
+                      setRepair((current) => ({
+                        ...current,
+                        estimatedCost: event.target.value,
+                      }))
+                    }
+                    inputMode="decimal"
+                    className={inputClassName}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="depositAmount">เงินมัดจำ (บาท)</Label>
+                  <Input
+                    id="depositAmount"
+                    value={repair.depositAmount}
+                    onChange={(event) =>
+                      setRepair((current) => ({
+                        ...current,
+                        depositAmount: event.target.value,
+                      }))
+                    }
+                    inputMode="decimal"
+                    className={inputClassName}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dueAt">กำหนดรับเครื่อง</Label>
+                  <Input
+                    id="dueAt"
+                    type="date"
+                    value={repair.dueAt}
+                    onChange={(event) =>
+                      setRepair((current) => ({
+                        ...current,
+                        dueAt: event.target.value,
+                      }))
+                    }
+                    className={inputClassName}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="warrantyDays">ประกันงานซ่อม (วัน)</Label>
+                  <Input
+                    id="warrantyDays"
+                    type="number"
+                    min={0}
+                    max={3650}
+                    value={repair.warrantyDays}
+                    onChange={(event) =>
+                      setRepair((current) => ({
+                        ...current,
+                        warrantyDays: event.target.value,
+                      }))
+                    }
+                    className={inputClassName}
+                  />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="reportedSymptoms">อาการเสีย *</Label>

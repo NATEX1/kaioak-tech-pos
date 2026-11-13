@@ -1,4 +1,4 @@
-// KAIOAK TECH POS — Prisma schema
+// KLYX LAB POS — Prisma schema
 // Money is always Decimal. Dates are stored in UTC and rendered in Asia/Bangkok.
 
 generator client {
@@ -40,15 +40,26 @@ enum PaymentMethod {
   CASH
   TRANSFER
   CARD
+  QR
 }
 
 enum RepairStatus {
   RECEIVED
   INSPECTING
+  WAITING_APPROVAL
   WAITING_PARTS
   REPAIRING
   COMPLETED
   DELIVERED
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  CONVERTED
+  EXPIRED
+  CANCELLED
 }
 
 enum BarcodeType {
@@ -128,6 +139,8 @@ model User {
   payouts           CommissionPayout[]  @relation("PayoutTechnician")
   payoutsPaid       CommissionPayout[]  @relation("PayoutPaidBy")
   auditLogs         AuditLog[]          @relation("AuditActor")
+  quotesCreated     Quote[]             @relation("QuoteCreatedBy")
+  dayClosings       DayClosing[]        @relation("DayClosingClosedBy")
 
   @@index([role, isActive])
   @@index([isActive, createdAt])
@@ -141,15 +154,20 @@ model Customer {
   address     String?   @db.Text
   taxId       String?   @db.VarChar(20)
   note        String?   @db.Text
+  lineId      String?   @db.VarChar(100)
+  whatsapp    String?   @db.VarChar(32)
+  isWalkIn    Boolean   @default(false)
   isActive    Boolean   @default(true)
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   createdById String?
 
-  bills Bill[]
+  bills  Bill[]
+  quotes Quote[]
 
   @@index([name])
+  @@index([isWalkIn])
   @@index([createdAt])
   @@index([deletedAt])
 }
@@ -223,6 +241,7 @@ model Product {
   billItems         BillItem[]
   goodsReceiptItems GoodsReceiptItem[]
   warrantyClaims    BillWarrantyClaim[]
+  quoteItems        QuoteItem[]
 
   @@index([categoryId, isActive])
   @@index([name])
@@ -390,20 +409,23 @@ model Bill {
   vatAmount          Decimal       @default(0) @db.Decimal(12, 2)
   grandTotal         Decimal       @default(0) @db.Decimal(12, 2)
 
-  paymentMethod   PaymentMethod?
-  rejectionReason String?        @db.Text
-  voidReason      String?        @db.Text
-  submittedAt     DateTime?
-  approvedAt      DateTime?
-  approvedById    String?
-  rejectedAt      DateTime?
-  rejectedById    String?
-  paidAt          DateTime?
-  paidById        String?
-  voidedAt        DateTime?
-  voidedById      String?
-  stockDeductedAt DateTime?
-  stockRestoredAt DateTime?
+  paymentMethod    PaymentMethod?
+  paymentReference String?        @db.VarChar(120)
+  receivedAmount   Decimal        @default(0) @db.Decimal(12, 2)
+  changeAmount     Decimal        @default(0) @db.Decimal(12, 2)
+  rejectionReason  String?        @db.Text
+  voidReason       String?        @db.Text
+  submittedAt      DateTime?
+  approvedAt       DateTime?
+  approvedById     String?
+  rejectedAt       DateTime?
+  rejectedById     String?
+  paidAt           DateTime?
+  paidById         String?
+  voidedAt         DateTime?
+  voidedById       String?
+  stockDeductedAt  DateTime?
+  stockRestoredAt  DateTime?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -419,6 +441,7 @@ model Bill {
   originalForClaims BillWarrantyClaim[] @relation("WarrantyClaimOriginalBill")
   stockMovements    StockMovement[]
   commissionEntries CommissionEntry[]
+  sourceQuote       Quote?              @relation("QuoteConvertedBill")
 
   @@index([status, createdAt])
   @@index([technicianId, status, createdAt])
@@ -488,6 +511,12 @@ model BillRepairDetail {
   reportedSymptoms String       @db.Text
   diagnosis        String?      @db.Text
   resolution       String?      @db.Text
+  accessories      String?      @db.Text
+  devicePasscode   String?      @db.VarChar(200)
+  estimatedCost    Decimal?     @db.Decimal(12, 2)
+  depositAmount    Decimal      @default(0) @db.Decimal(12, 2)
+  dueAt            DateTime?
+  warrantyDays     Int          @default(30)
   repairStatus     RepairStatus @default(RECEIVED)
   receivedAt       DateTime?
   completedAt      DateTime?
@@ -683,21 +712,115 @@ model AuditLog {
 }
 
 model AppSetting {
-  id            String   @id @default("main")
-  shopName      String   @default("KAIOAK TECH")
-  address       String?  @db.Text
-  phone         String?  @db.VarChar(32)
-  email         String?  @db.VarChar(254)
-  taxId         String?  @db.VarChar(20)
-  vatEnabled    Boolean  @default(false)
-  vatRate       Decimal  @default(7) @db.Decimal(5, 2)
-  vatIncluded   Boolean  @default(true)
-  receiptFooter String?  @db.Text
-  logoUrl       String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  createdById   String?
-  updatedById   String?
+  id                 String   @id @default("main")
+  shopName           String   @default("KLYX LAB")
+  address            String?  @db.Text
+  phone              String?  @db.VarChar(32)
+  email              String?  @db.VarChar(254)
+  taxId              String?  @db.VarChar(20)
+  vatEnabled         Boolean  @default(false)
+  vatRate            Decimal  @default(7) @db.Decimal(5, 2)
+  vatIncluded        Boolean  @default(true)
+  receiptFooter      String?  @db.Text
+  logoUrl            String?
+  promptpayId        String?  @db.VarChar(32)
+  bankInfo           String?  @db.Text
+  lineId             String?  @db.VarChar(100)
+  whatsapp           String?  @db.VarChar(32)
+  repairWarrantyDays Int      @default(30)
+  quoteValidityDays  Int      @default(7)
+  repairTerms        String?  @db.Text
+  messageTemplates   Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  createdById        String?
+  updatedById        String?
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  quoteNumber String      @unique @db.VarChar(32)
+  customerId  String
+  createdById String?
+  status      QuoteStatus @default(DRAFT)
+  validUntil  DateTime
+  note        String?     @db.Text
+
+  subtotal           Decimal       @default(0) @db.Decimal(12, 2)
+  discountType       DiscountType?
+  discountValue      Decimal       @default(0) @db.Decimal(12, 2)
+  discountAmount     Decimal       @default(0) @db.Decimal(12, 2)
+  netAmountBeforeVat Decimal       @default(0) @db.Decimal(12, 2)
+  vatEnabled         Boolean       @default(false)
+  vatIncluded        Boolean       @default(true)
+  vatRate            Decimal       @default(7) @db.Decimal(5, 2)
+  vatAmount          Decimal       @default(0) @db.Decimal(12, 2)
+  grandTotal         Decimal       @default(0) @db.Decimal(12, 2)
+
+  convertedBillId String?   @unique
+  acceptedAt      DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdBy     User?       @relation("QuoteCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  convertedBill Bill?       @relation("QuoteConvertedBill", fields: [convertedBillId], references: [id], onDelete: SetNull)
+  items         QuoteItem[]
+
+  @@index([customerId, createdAt])
+  @@index([status, validUntil])
+  @@index([createdById, createdAt])
+  @@index([createdAt])
+}
+
+model QuoteItem {
+  id             String        @id @default(cuid())
+  quoteId        String
+  productId      String?
+  description    String
+  quantity       Int
+  unitPrice      Decimal       @db.Decimal(12, 2)
+  discountType   DiscountType?
+  discountValue  Decimal       @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal       @default(0) @db.Decimal(12, 2)
+  lineTotal      Decimal       @default(0) @db.Decimal(12, 2)
+  sortOrder      Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  createdById    String?
+
+  quote   Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId])
+  @@index([productId])
+}
+
+model DayClosing {
+  id             String   @id @default(cuid())
+  dateKey        String   @unique @db.VarChar(10)
+  totalSales     Decimal  @default(0) @db.Decimal(12, 2)
+  billCount      Int      @default(0)
+  voidCount      Int      @default(0)
+  cashSales      Decimal  @default(0) @db.Decimal(12, 2)
+  transferSales  Decimal  @default(0) @db.Decimal(12, 2)
+  cardSales      Decimal  @default(0) @db.Decimal(12, 2)
+  qrSales        Decimal  @default(0) @db.Decimal(12, 2)
+  repairDeposits Decimal  @default(0) @db.Decimal(12, 2)
+  expectedCash   Decimal  @default(0) @db.Decimal(12, 2)
+  countedCash    Decimal  @default(0) @db.Decimal(12, 2)
+  difference     Decimal  @default(0) @db.Decimal(12, 2)
+  note           String?  @db.Text
+  closedById     String
+  closedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdById    String?
+
+  closedBy User @relation("DayClosingClosedBy", fields: [closedById], references: [id], onDelete: Restrict)
+
+  @@index([closedAt])
 }
 
 model RateLimitBucket {
